@@ -7,105 +7,105 @@ var plumber = require('gulp-plumber');
 var concat = require('gulp-concat');
 var htmlv = require('gulp-html-validator');
 var prettify = require('gulp-jsbeautifier');
+var extention = require('gulp-ext-replace');
+var clip = require('gulp-clip-empty-files');
 
 
-gulp.task('htmllint', function () {
-    gulp.src('build/markup/*.html')
+gulp.task('htmllint', ['sanitize'], function () {
+    return gulp.src('build/markup/*.html')
         .pipe(plumber())
         .pipe(htmlv())
         .pipe(replace('{"messages":[]}', ''))
-        .pipe(concat('temp.json'))
-        
+        .pipe(replace('{"messages":[],"language":"en"}', ''))
+        .pipe(extention('.json'))
         .pipe(prettify({
             'js': {
                 'file_types': ['.json', '.bowerrc']
             }
         }))
+        // .pipe(concat('temp.json'))
+        .pipe(clip())
         .pipe(gulp.dest('build/log'));
 });
 
-var topDoc = `<!doctype html>
-<html lang="en">
-  <head>
-  <title>LALALA</title>
-  <link rel="stylesheet" href="/styles/layout.css">
-</head>
-<body>`;
-
-gulp.task('sanitize', function () {
-    gulp.src('book_src/*.html')
+gulp.task('sanitize', ['clean'], function () {
+    return gulp.src('book_src/*.html')
         .pipe(plumber())
 
-        // attempt to reduce the amount of giant whitespace
-        .pipe(replace(/\n{3,}/mg, ''))
 
         // replace outdated html/head
-        .pipe(replace(/<!doctype.*(\n.*)*<body>/m, topDoc))
+        .pipe(replace(/<!doctype .*\n/m, '<!doctype html>'))
 
-        // remove footer navigation links
-        .pipe(replace(/<p><div class=navigation>.*(\n.*)*<p>/, ''))
+        // remove multiline comments in head
+        .pipe(replace(/<!--.*(\n)[ ]*.*/m, ''))
 
-        // remove top navigation links
-        .pipe(replace(/<p><div class=navigation>.*(\n.*)*]<\/div><p>/, ''))
+        // add lang to html
+        .pipe(replace('<html>', '<html lang="en">'))
 
-        // remove all <p> tags.  they have no hope.
-        .pipe(replace('<p><br><p>', '<br />'))
-        .pipe(replace('<p>', ''))
-        .pipe(replace('</p>', ''))
+        // replace css
+        .pipe(replace(/<link .*>/, '<link rel="stylesheet" href="css/main.css">'))
+
+        // remove all <p> and <b> tags.  may want to convert p -> br and b -> strong.
+        .pipe(replace(/<\/?(p|b])[ ]*\/?>/g, ''))
+
+        // remove align attributes
         .pipe(replace(/[ ]?v?align=(top|bottom|left|right|center)/g, ''))
 
-        // doesn't appear to affect any text
+        // Removes percent signs added to elem IDs. doesn't appear to affect any content.
         .pipe(replace('%', ''))
 
-        .pipe(replace(/<table width=[0-9]*>/, '<table>'))
+        // replace name attrs with ids.
+        .pipe(replace('<a name=', '<a id='))
 
-        // remove outdated attributes.
-        .pipe(replace(/name="\%?/, 'id="'))
-
-        // probably a suitable replacement
+        // probably a suitable replacement tt -> code
         .pipe(replace('<tt>', '<code>'))
         .pipe(replace('</tt>', '</code>'))
 
         // rewrite image paths to new subdirectory
-        //.pipe(replace('src="', 'src="/images/'))
+        .pipe(replace('src="', 'src="/images/'))
 
-        // temp fix (bad)
-        .pipe(replace('<img', '<img alt="temp"'))
+        // 'it just works' fix for html validation errors.
+        .pipe(replace('<img', '<img alt="foo"'))
 
+        // deal with invalid markup inside heading elements.  May want to be able to style these in css.
+        .pipe(replace('<h1', '<div'))
+        .pipe(replace('</h1>', '</div>'))
 
-        // .pipe(replace('<ul>', '<div>'))
-        // .pipe(replace('</ul>', '</div>'))
-        // .pipe(replace(/<li>.*/, '<div>$&</div>'))
-        // .pipe(replace('<li>', ''))
-        // .pipe(replace('</li>', ''))
+        // try to handle out-of-control whitespace
+        .pipe(replace('&nbsp;', ' '))
+        .pipe(replace(/^[ ]*$/g, ''))
 
-        // doesnt seem useful
-        .pipe(replace('<div class=chapterheading>&nbsp;</div>', ''))
+        // removing empty anchor links.
+        .pipe(replace(/<a[a-zA-Z0-9 "=#-_\.]*>[ ]*<\/a>/g, ''))
 
-        // removing useless anchor links.
-        .pipe(replace(/<a name=".*"><\/a>/, ''))
+        // try to fix table html
+        .pipe(replace(/<table width=[0-9]*>/g, '<table>'))
+        .pipe(replace('<caption><div>', '<tr><td>'))
+        .pipe(replace('</div></caption>', '</td></tr>'))
+        .pipe(replace(/<tr><td >[ ]*<\/td><\/tr>/g, ''))
 
-        // changing anchor links to ids:
-        .pipe(replace('<a name="', '<a id="'))
+        // remove footer links on ever page.
+        //.pipe(replace(/<p><div class=navigation>.*\n<a .*\n<a .*<(\/)?p>/g, ''))
+        .pipe(replace(/<p><div class=navigation>.*\n?<a[a-zA-Z0-9 "=#-_\.]*>[a-zA-Z ]*<\/a>[a-zA-Z ;&]*<a[a-zA-Z0-9 "=#-\._]*>[a-zA-Z ;&]*<\/a>\]<\/div><p>/g, ''))
 
-        //.pipe(replace(' id="-sec_IGNORE"', ''))
+        // remove page navigation links
+        .pipe(replace(/(<p>)?<div class=navigation>.*(\n.*){3}/g, ''))
 
-        .pipe(replace('table width=100%', 'table'))
+        // === FILE SPECIFIC FIXES === //
 
-        // .pipe(replace('<caption >', ''))
-        // .pipe(replace('</caption>', ''))
+        // remove broken a link in file 4
+        .pipe(replace('<a id="_toc_start">', ''))
 
         // remove broken tags in files 38,39
         .pipe(replace('<a id="_index_start">', ''))
 
+        // remove bad or repeated ids across multiple files.
+        .pipe(replace('id="_sec_IGNORE"', ''))
+        .pipe(replace('id="_fig_5.17"', ''))
+        .pipe(replace('id="_fig_5.18"', ''))
+        .pipe(replace('id="_toc__chap_IGNORE"', ''))
 
-        // remove footer links on ever page.
-        .pipe(replace(/<a href="book.*[next](\n.*)*<\/a>\]\<\/div><a id="_.*<\/a>/m, ''))
 
-
-        // .pipe(replace('<tr><td  >&nbsp;&nbsp;</td></tr>', ''))
-        // .pipe(replace('</tr><div >', '</tr><tr><td>'))
-        // .pipe(replace('</div><tr>', '</td></tr><tr>'))
 
         .pipe(gulp.dest('build/markup'));
 
@@ -115,4 +115,14 @@ gulp.task('clean', function () {
     return del('build');
 });
 
-gulp.task('default', ['clean', 'sanitize', 'htmllint']);
+
+gulp.task('images', function () {
+    return gulp.src(['book_src/*.gif', 'book_src/*.jpg'])
+        // Pass in options to the task
+        .pipe(imagemin({
+            optimizationLevel: 5
+        }))
+        .pipe(gulp.dest('build/images'));
+});
+
+gulp.task('default', ['sanitize', 'htmllint']);
