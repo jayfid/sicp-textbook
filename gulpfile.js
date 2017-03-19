@@ -5,15 +5,14 @@ var replace = require('gulp-replace');
 var del = require('del');
 var plumber = require('gulp-plumber');
 var concat = require('gulp-concat');
-//var insert = require('gulp-insert');
 var htmlv = require('gulp-html-validator');
-var gutil = require('gulp-util');
 var prettify = require('gulp-jsbeautifier');
-var sourcemaps = require('gulp-sourcemaps');
+
 
 gulp.task('htmllint', function () {
     gulp.src('build/markup/*.html')
-        .pipe(htmlv()).on('error', gutil.log)
+        .pipe(plumber())
+        .pipe(htmlv())
         .pipe(replace('{"messages":[]}', ''))
         .pipe(concat('temp.json'))
         
@@ -37,8 +36,8 @@ gulp.task('sanitize', function () {
     gulp.src('book_src/*.html')
         .pipe(plumber())
 
-        // attempt to reduce the number of giant whitespace
-        .pipe(replace(/\n{2,}/mg, ''))
+        // attempt to reduce the amount of giant whitespace
+        .pipe(replace(/\n{3,}/mg, ''))
 
         // replace outdated html/head
         .pipe(replace(/<!doctype.*(\n.*)*<body>/m, topDoc))
@@ -116,4 +115,4 @@ gulp.task('clean', function () {
     return del('build');
 });
 
-gulp.task('default', []);
+gulp.task('default', ['clean', 'sanitize', 'htmllint']);
