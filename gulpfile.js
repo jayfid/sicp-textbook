@@ -9,6 +9,7 @@ var htmlv = require('gulp-html-validator');
 var prettify = require('gulp-jsbeautifier');
 var extention = require('gulp-ext-replace');
 var clip = require('gulp-clip-empty-files');
+var striptags = require('striptags').init_streaming_mode();
 
 
 gulp.task('htmllint', ['sanitize'], function () {
@@ -123,6 +124,14 @@ gulp.task('images', function () {
             optimizationLevel: 5
         }))
         .pipe(gulp.dest('build/images'));
+});
+
+gulp.task('compare', function() {
+    return gulp.src(['book_src/*.html'])
+        .pipe(plumber())
+        //.pipe(striptags())
+        .pipe(concat('source.txt'))
+        .pipe(gulp.dest('build/compare'));
 });
 
 gulp.task('default', ['sanitize', 'htmllint']);

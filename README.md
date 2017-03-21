@@ -4,7 +4,9 @@ _(MIT Press, 1984; ISBN 0-262-01077-1)_
 
 One of the most beloved books in CS is currently [available free](https://mitpress.mit.edu/sicp/full-text/book/book.html) on MIT's website, or for purchase in hard and soft cover.
 
-However, these copies don't work well for those of us who read on our phones or eReaders.
+However, formatting this text for an eReader produced somewhat hilarious results:  
+![PDF Layout](https://assets.newpointdesigns.com/sicp/pdf-fail-300-400.jpg)
+
 
 This is a build process to be run against the source supplied by MIT , under the [CC Attribution-ShareAlike 4.0 International](https://creativecommons.org/licenses/by-sa/4.0/)
 
@@ -21,3 +23,12 @@ with Julie Sussman
 - finish build process
 - add exports for common mobile reader formats
 - investigate assistive devices options
+
+## Gulp Tasks
+- `sanitize`: Read in source files and generate correct html files
+- `htmllint`: Validate html in generated files
+- `images`: Optimze source images and output into build directory
+- `clean`: Remove generated files and folders
+- `compare`: Remove all html from source and generated files and diff results
+- `bundle`: Build generated files into epub? format.
+
