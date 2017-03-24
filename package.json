@@ -16,11 +16,15 @@
     "gulp-concat": "^2.6.1",
     "gulp-ext-replace": "^0.3.0",
     "gulp-file-include": "^1.0.0",
+    "gulp-footer": "^1.0.5",
+    "gulp-header": "^1.8.8",
     "gulp-html-validator": "0.0.5",
     "gulp-imagemin": "^3.1.1",
     "gulp-jsbeautifier": "^2.1.0",
     "gulp-plumber": "^1.1.0",
+    "gulp-remove-empty-lines": "0.0.8",
     "gulp-replace": "^0.5.4",
+    "gulp-striptags": "^1.0.0",
     "striptags": "^3.0.1"
   }
 }

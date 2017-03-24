@@ -9,11 +9,14 @@ var htmlv = require('gulp-html-validator');
 var prettify = require('gulp-jsbeautifier');
 var extention = require('gulp-ext-replace');
 var clip = require('gulp-clip-empty-files');
-var striptags = require('striptags').init_streaming_mode();
+var striptags = require('gulp-striptags');
+var header = require('gulp-header');
+var footer = require('gulp-footer');
+var removeEmptyLines = require('gulp-remove-empty-lines');
 
 
-gulp.task('htmllint', ['sanitize'], function () {
-    return gulp.src('build/markup/*.html')
+gulp.task('htmllint', ['striptags'], function () {
+    return gulp.src('build/stripped/*.html')
         .pipe(plumber())
         .pipe(htmlv())
         .pipe(replace('{"messages":[]}', ''))
@@ -24,8 +27,8 @@ gulp.task('htmllint', ['sanitize'], function () {
                 'file_types': ['.json', '.bowerrc']
             }
         }))
-        // .pipe(concat('temp.json'))
-        .pipe(clip())
+        .pipe(concat('temp.json'))
+        //.pipe(clip())
         .pipe(gulp.dest('build/log'));
 });
 
@@ -35,7 +38,7 @@ gulp.task('sanitize', ['clean'], function () {
 
 
         // replace outdated html/head
-        .pipe(replace(/<!doctype .*\n/m, '<!doctype html>'))
+        .pipe(replace(/<!doctype .*\n/m, ''))
 
         // remove multiline comments in head
         .pipe(replace(/<!--.*(\n)[ ]*.*/m, ''))
@@ -106,8 +109,7 @@ gulp.task('sanitize', ['clean'], function () {
         .pipe(replace('id="_fig_5.18"', ''))
         .pipe(replace('id="_toc__chap_IGNORE"', ''))
 
-
-
+        // output the final cleaned markup.
         .pipe(gulp.dest('build/markup'));
 
 });
@@ -126,12 +128,56 @@ gulp.task('images', function () {
         .pipe(gulp.dest('build/images'));
 });
 
-gulp.task('compare', function() {
+var HTMLheader = `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Structure and Interpretation of Computer Programs</title>
+<link rel="stylesheet" href="css/main.css">
+</head>
+<body>`;
+
+var HTMLfooter = '</body></html>';
+
+gulp.task('striptags', function () {
     return gulp.src(['book_src/*.html'])
         .pipe(plumber())
-        //.pipe(striptags())
-        .pipe(concat('source.txt'))
-        .pipe(gulp.dest('build/compare'));
+        .pipe(striptags(['div', 'h2', 'img', 'h3', 'b', 'caption', 'tt']))
+        .pipe(replace('<tt>', '<code>'))
+        .pipe(replace('</tt>', '</code>'))
+        .pipe(replace(/\<div class=navigation\>[a-zA-Z \n,;\&\]\[]*<\/div>/g, ''))
+        //.pipe(replace('&nbsp;', ' '))
+        //.pipe(concat('stripped.html'))
+        .pipe(header(HTMLheader))
+        .pipe(removeEmptyLines(HTMLfooter))
+        .pipe(gulp.dest('build/stripped'));
 });
+
+gulp.task('outline', function() {
+    return gulp.src(['book_src/*.html'])
+        .pipe(plumber())
+
+        // get 
+        .pipe(striptags(['h1', 'h2', 'h3']))
+        
+        
+        .pipe(replace('&nbsp;', ' '))
+
+        .pipe(gulp.dest('build/intermediate'))
+
+        // replace all non-heading elements 
+        //.pipe(replace(/^(?!<h[1,2,3])[ a-zA-Z0-9\[\];\.,():\n\+\*\^\/\-`'\&\=\?\#\!\^\$\%\}\{]*/gm, ''))
+
+
+        .pipe(replace(/^(?!<h[1,2,3])(?!Chapter)[ a-zA-Z0-9\[\];\.,():\n\+\*\^\/\-`'\&\=\?\#\!\^\$\%\}\{]*$/gm, ''))
+        .pipe(removeEmptyLines())
+        .pipe(concat('outline.txt'))
+        
+        .pipe(gulp.dest('build/outline'));
+});
+
+// gulp.task('compare', function () {
+
+// });
 
 gulp.task('default', ['sanitize', 'htmllint']);
