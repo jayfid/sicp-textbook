@@ -1,25 +1,37 @@
-
-
 body {
-   color: black;
-/*   background-color: #e5e5e5; */ 
-/*   background-color: #fffff8; */
-background-color: white;
-   margin-top: 2em;
-   margin-left: 8%;
-   margin-right: 8%;
+    color: black;
+    background-color: white;
+    margin-top: 2em;
+    margin-left: 8%;
+    margin-right: 8%;
+    line-height: 150%;
+    font-size: medium;
 }
 
-h1,h2,h3,h4,h5,h6 {
-   margin-top: .5em;
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    margin-top: .5em;
+    line-height: 200%;
+}
+
+h1 a,
+h2 a,
+h3 a,
+h4 a {
+    color: #333;
+    text-decoration: none;
 }
 
 .partheading {
-   font-size: 70%;
+    font-size: 70%;
 }
 
 .chapterheading {
-   font-size: 70%;
+    font-size: 70%;
 }
 
 pre {
@@ -27,44 +39,43 @@ pre {
 }
 
 ol {
-   list-style-type: decimal;
+    list-style-type: decimal;
 }
 
 ol ol {
-   list-style-type: lower-alpha;
+    list-style-type: lower-alpha;
 }
 
 ol ol ol {
-   list-style-type: lower-roman;
+    list-style-type: lower-roman;
 }
 
 ol ol ol ol {
-   list-style-type: upper-alpha;
+    list-style-type: upper-alpha;
 }
 
 .footnote {
-   font-size: 75%;
+    font-size: 75%;
 }
 
 .epigraph {
-/*   text-align: right; */
-   font-size: 75%; 
-} 
-
-.navigation {
-   color: red;
-   text-align: right;
-   font-style: italic;
+    /*   text-align: right; */
+    font-size: 75%;
 }
 
-.smallprint {
-   color: gray;
-   font-size: 75%;
-   text-align: right;
+.navigation {
+    color: red;
+    text-align: right;
+    font-style: italic;
+}
+
+.footnote {
+    margin-top: 3em;
+    color: gray;
+    font-size: 75%;
 }
 
 .smallprint hr {
-   text-align: left;
-   width: 40%;
+    text-align: left;
+    width: 40%;
 }
-

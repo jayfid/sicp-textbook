@@ -13,10 +13,11 @@ var striptags = require('gulp-striptags');
 var header = require('gulp-header');
 var footer = require('gulp-footer');
 var removeEmptyLines = require('gulp-remove-empty-lines');
-
+var imagemin = require('gulp-imagemin');
+var browserSync = require('browser-sync').create();
 
 gulp.task('htmllint', ['striptags'], function () {
-    return gulp.src('build/stripped/*.html')
+    return gulp.src('build/*.html')
         .pipe(plumber())
         .pipe(htmlv())
         .pipe(replace('{"messages":[]}', ''))
@@ -28,37 +29,27 @@ gulp.task('htmllint', ['striptags'], function () {
             }
         }))
         .pipe(clip())
-
-        //.pipe(concat('temp.json'))
-        
-        .pipe(gulp.dest('build/log'));
+        .pipe(gulp.dest('log'));
 });
 
-gulp.task('sanitize', ['clean'], function () {
-    return gulp.src('book_src/*.html')
-        .pipe(plumber())
-
-        // rewrite image paths to new subdirectory
-        .pipe(replace('src="', 'src="/images/'))
-
-
-        // try to fix table html
-        .pipe(replace(/<table width=[0-9]*>/g, '<table>'))
-        .pipe(replace(/<tr><td >[ ]*<\/td><\/tr>/g, ''))
-
-     
-        // === FILE SPECIFIC FIXES === //
-
-       
-        // output the final cleaned markup.
-        .pipe(gulp.dest('build/markup'));
-
+gulp.task('browser-sync', function() {
+    browserSync.init({
+        server: {
+            baseDir: "./build"
+        }
+    });
 });
 
 gulp.task('clean', function () {
-    return del('build');
+    return del(['build', 'log']);
 });
 
+gulp.task('styles', function() {
+    return gulp.src('book_src/*.css')
+        .pipe(plumber())
+        .pipe(concat('main.css'))
+        .pipe(gulp.dest('build'));
+});
 
 gulp.task('images', function () {
     return gulp.src(['book_src/*.gif', 'book_src/*.jpg'])
@@ -66,7 +57,7 @@ gulp.task('images', function () {
         .pipe(imagemin({
             optimizationLevel: 5
         }))
-        .pipe(gulp.dest('build/images'));
+        .pipe(gulp.dest('build'));
 });
 
 var HTMLheader = `<!doctype html>
@@ -74,7 +65,7 @@ var HTMLheader = `<!doctype html>
 <head>
 <meta charset="utf-8" />
 <title>Structure and Interpretation of Computer Programs</title>
-<link rel="stylesheet" href="css/main.css">
+<link rel="stylesheet" href="main.css">
 </head>
 <body>`;
 
@@ -97,9 +88,12 @@ gulp.task('striptags', ['clean'], function () {
             'h4', // examples
             'img', // disgrams
             'b', 
-            'caption', // relevant descriptions, 
+            'caption', // relevant descriptions
             'tt',
-            'a' // links are useful
+            'a', // links are useful
+            'code',
+            'figure',
+            'br'
             ]))
 
         // update <tt>s => <code>s
@@ -113,8 +107,10 @@ gulp.task('striptags', ['clean'], function () {
         .pipe(replace(/[ ]?v?align=(top|bottom|left|right|center)/g, ''))
 
         // remove heading and footer navs
-        .pipe(replace(/\<div class=navigation\>[a-zA-Z \n,;\&\]\[]*<\/div>/g, ''))
-
+        //.pipe(replace(/\<div class=navigation\>[a-zA-Z \n,;\&\]\[]*<\/div>/g, ''))
+        .pipe(replace(/\<div class=navigation\>.*\n.*\n.*<\/div>/g, ''))
+        .pipe(replace(/\<div class=navigation\>.*\n.*<\/div>/g, ''))
+        
         // attempt to remove divs inside of h1s without losing content
         .pipe(replace('<div class=chapterheading>&nbsp;</div>', ''))
         .pipe(replace('<div class=chapterheading>', ''))
@@ -133,7 +129,7 @@ gulp.task('striptags', ['clean'], function () {
         .pipe(replace('id="_toc__chap_IGNORE"', ''))
 
         // removing empty anchor links.
-        .pipe(replace(/<a[a-zA-Z0-9 "=#-_\.]*>[ ]*<\/a>/g, ''))
+        .pipe(replace(/<a[a-zA-Z0-9 "=#\-_]*[ ]*<\/a>/g, ''))
 
          // remove broken a link in file 4
         .pipe(replace('<a id="_toc_start">', ''))
@@ -141,18 +137,24 @@ gulp.task('striptags', ['clean'], function () {
         // remove broken tags in files 38,39
         .pipe(replace('<a id="_index_start">', ''))
 
+        // replace bad a attribute 'target' in file 35
+        .pipe(replace('<a target', '<a href'))
+
         // fix unclosed img tags
         .pipe(replace('gif">', 'gif"/>'))
 
         // replace captions
-        .pipe(replace('<caption>', '<div class="caption">'))
-        .pipe(replace('</caption>', '</div>'))
+        .pipe(replace('<caption>', '<figcaption>'))
+        .pipe(replace('</caption>', '</figcaption>'))
+
+        // remove broken anchor tags from figures
+        .pipe(replace(/\<a id="_idx_[0-9]{4}"><\/a>/g, ''))
 
         // add scaffolding
         .pipe(header(HTMLheader))
-        .pipe(removeEmptyLines(HTMLfooter))
+        .pipe(footer(HTMLfooter))
 
-        .pipe(gulp.dest('build/stripped'));
+        .pipe(gulp.dest('build'));
 });
 
 gulp.task('outline', function() {
@@ -174,12 +176,7 @@ gulp.task('outline', function() {
         .pipe(replace(/^(?!<h[1,2,3])(?!Chapter)[ a-zA-Z0-9\[\];\.,():\n\+\*\^\/\-`'\&\=\?\#\!\^\$\%\}\{]*$/gm, ''))
         .pipe(removeEmptyLines())
         .pipe(concat('outline.txt'))
-        
         .pipe(gulp.dest('build/outline'));
 });
 
-// gulp.task('compare', function () {
-
-// });
-
-gulp.task('default', ['sanitize', 'htmllint']);
+gulp.task('default', ['striptags', 'images', 'styles', 'htmllint']);

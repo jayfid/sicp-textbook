@@ -18,17 +18,16 @@ with Julie Sussman
 
 
 ## TODO
-- handle image optimization
 - define best styling rules
 - finish build process
-- add exports for common mobile reader formats
-- investigate assistive devices options
+- add exports for kindles
 
 ## Gulp Tasks
-- `sanitize`: Read in source files and generate correct html files
+- `striptags`: Read in source files and remove incorrect HTML
+- `styles`: Copy styles into build folder
 - `htmllint`: Validate html in generated files
 - `images`: Optimze source images and output into build directory
 - `clean`: Remove generated files and folders
-- `compare`: Remove all html from source and generated files and diff results
-- `bundle`: Build generated files into epub? format.
+- `browser-sync`: Preview HTML files in browser
+- `bundle`: Build generated files into epub(?) format
 
