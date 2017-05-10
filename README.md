@@ -31,3 +31,9 @@ with Julie Sussman
 - `browser-sync`: Preview HTML files in browser
 - `bundle`: Build generated files into epub(?) format
 
+## Build epub with pandoc
+_requires `pandoc` to be installed on your system_
+```
+cd build
+pandoc book-Z-H-1.html book-Z-H-2.html book-Z-H-3.html book-Z-H-4.html book-Z-H-5.html book-Z-H-6.html book-Z-H-7.html book-Z-H-8.html book-Z-H-9.html book-Z-H-10.html book-Z-H-11.html book-Z-H-12.html book-Z-H-13.html book-Z-H-14.html book-Z-H-15.html book-Z-H-16.html book-Z-H-17.html book-Z-H-18.html book-Z-H-19.html book-Z-H-20.html book-Z-H-21.html book-Z-H-22.html book-Z-H-23.html book-Z-H-24.html book-Z-H-25.html book-Z-H-26.html book-Z-H-27.html book-Z-H-28.html book-Z-H-29.html book-Z-H-30.html book-Z-H-31.html book-Z-H-32.html book-Z-H-33.html book-Z-H-34.html book-Z-H-35.html book-Z-H-36.html book-Z-H-37.html book-Z-H-38.html book-Z-H-39.html -o sicp.epub
+```
